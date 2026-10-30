@@ -2,6 +2,7 @@ import "server-only";
 import { createRequire } from "node:module";
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from "node:crypto";
 import { existsSync, mkdirSync } from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 type SqliteStatement = {
@@ -16,7 +17,9 @@ export type SqliteDb = {
   close: () => void;
 };
 
-export const DATA_DIR = path.join(process.cwd(), "data");
+export const DATA_DIR = process.env.VERCEL
+  ? path.join(os.tmpdir(), "edusor-data")
+  : path.join(process.cwd(), "data");
 export const STORAGE_DIR = path.join(DATA_DIR, "storage");
 const DB_FILE = path.join(DATA_DIR, "edusor.sqlite");
 
