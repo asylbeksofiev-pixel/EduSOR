@@ -19,6 +19,7 @@ export default async function SuperSettings() {
           <CardBody className="flex flex-col gap-4">
             <Alert tone={aiConfigured() ? "success" : "warning"}>{aiConfigured() ? d.superAdmin.aiConfigured : d.superAdmin.aiNotConfigured}</Alert>
             <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
+              <dt className="text-muted-foreground">{d.superAdmin.aiProvider}</dt><dd className="font-mono text-xs">{m.provider === "gemini" ? "Google Gemini API" : "OpenAI-compatible API"}</dd>
               <dt className="text-muted-foreground">{d.superAdmin.aiBaseUrl}</dt><dd className="break-all font-mono text-xs">{m.baseUrl}</dd>
               <dt className="text-muted-foreground">{d.superAdmin.aiModelText}</dt><dd className="font-mono text-xs">{m.text}</dd>
               <dt className="text-muted-foreground">{d.superAdmin.aiModelVision}</dt><dd className="font-mono text-xs">{m.vision}</dd>

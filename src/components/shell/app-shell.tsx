@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
 import type { AppRole, SessionContext } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { NAV } from "./nav-config";
 import { Brand, SidebarNav } from "./sidebar";
-import { MobileNav } from "./mobile-nav";
+import { MobileBottomNav, MobileNav } from "./mobile-nav";
 import { LanguageSwitcher } from "./language-switcher";
 import { NotificationBell } from "./notification-bell";
 import { UserMenu } from "./user-menu";
@@ -27,24 +28,32 @@ export async function AppShell({ ctx, role, children }: { ctx: SessionContext; r
 
   return (
     <div className="flex min-h-dvh">
-      <aside className="no-print sticky top-0 hidden h-dvh w-64 shrink-0 flex-col bg-sidebar py-5 text-white lg:flex">
+      <aside className="no-print glass-sidebar sticky top-0 hidden h-dvh w-66 shrink-0 flex-col py-5 lg:flex">
         <Brand className="mb-6 px-6" />
         <div className="flex-1 overflow-y-auto">
           <SidebarNav items={items} />
         </div>
-        {school && <div className="mx-6 mt-4 border-t border-white/10 pt-4 text-xs text-sidebar-foreground/80">{school.name}</div>}
+        {school && (
+          <div className="mx-4 mt-4 rounded-xl border border-border/70 bg-muted/45 px-3.5 py-2.5 text-xs font-medium text-muted-foreground">
+            {school.name}
+          </div>
+        )}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="no-print sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border bg-surface/95 px-3 backdrop-blur sm:px-6">
+        <header className="no-print glass-header sticky top-0 z-30 flex h-15 items-center gap-2 px-3 sm:px-6">
           <MobileNav items={items} />
           <Brand className="lg:hidden" />
-          <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2.5">
             <LanguageSwitcher />
+            <ThemeToggle />
             <NotificationBell userId={ctx.userId} initialUnread={count ?? 0} />
             <UserMenu name={ctx.profile.full_name} email={ctx.email} role={role} roles={ctx.roles} settingsHref={SETTINGS[role]} />
           </div>
         </header>
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
+        <main className="animate-fade-up mx-auto w-full max-w-7xl flex-1 px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pb-10">
+          {children}
+        </main>
+        <MobileBottomNav items={items} />
       </div>
     </div>
   );

@@ -171,9 +171,9 @@ export function AttemptRunner(p: Props) {
 
   if (phase === "done") {
     return (
-      <div className="mx-auto mt-10 max-w-lg rounded-lg border border-border bg-surface p-8 text-center shadow-card">
+      <div className="glass-card mx-auto mt-10 max-w-lg rounded-3xl p-8 text-center">
         <CheckCircle2 className="mx-auto mb-3 size-10 text-success" />
-        <h1 className="text-lg font-semibold">{finishReason === "timeout" ? d.attempt.timeUpTitle : d.attempt.submittedTitle}</h1>
+        <h1 className="text-lg font-bold">{finishReason === "timeout" ? d.attempt.timeUpTitle : d.attempt.submittedTitle}</h1>
         {finishReason === "timeout" && <p className="mt-2 text-sm text-muted-foreground">{d.attempt.timeUpText}</p>}
         <Loader2 className="mx-auto mt-4 size-5 animate-spin text-muted-foreground" />
       </div>
@@ -185,10 +185,10 @@ export function AttemptRunner(p: Props) {
 
   return (
     <div className={cn("flex min-h-dvh flex-col", p.lockdown && "no-select")} translate={p.lockdown ? "no" : undefined}>
-      <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-2.5">
+      <header className="glass-header sticky top-0 z-30">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">{p.title}</p>
+            <p className="truncate text-sm font-bold">{p.title}</p>
             <p className="text-xs text-muted-foreground">{fmt(d.attempt.answered, { n: answered, total: p.questions.length })}</p>
           </div>
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground" aria-live="polite">
@@ -199,7 +199,7 @@ export function AttemptRunner(p: Props) {
             <span className={cn("hidden sm:inline", (autosave.status === "failed" || autosave.status === "offline") && "text-danger")}>{saveLabel}</span>
           </div>
           {remaining !== null && (
-            <div className={cn("flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-sm font-semibold tabular-nums", timeLow ? "bg-danger-soft text-danger" : "bg-muted")} role="timer" aria-label={d.attempt.timeLeft}>
+            <div className={cn("flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-mono text-sm font-bold tabular-nums", timeLow ? "bg-danger-soft text-danger" : "glass-pill")} role="timer" aria-label={d.attempt.timeLeft}>
               <Clock className="size-4" /> {formatDuration(remaining)}
             </div>
           )}
@@ -216,8 +216,8 @@ export function AttemptRunner(p: Props) {
       </header>
 
       {p.lockdown && lockdown.supported && !lockdown.isFullscreen && phase === "running" && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 p-4">
-          <div className="max-w-md rounded-lg bg-surface p-6 text-center shadow-xl">
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs">
+          <div className="glass-modal max-w-md rounded-2xl p-6 text-center">
             <AlertTriangle className="mx-auto mb-3 size-8 text-warning" />
             <p className="text-sm">{d.lockdown.warningExit}</p>
             <Button className="mt-4" onClick={() => void lockdown.enterFullscreen()}><Maximize /> {d.lockdown.returnFullscreen}</Button>
@@ -225,13 +225,13 @@ export function AttemptRunner(p: Props) {
         </div>
       )}
 
-      <div className="mx-auto grid w-full max-w-6xl flex-1 content-start gap-6 px-4 py-6 lg:grid-cols-[1fr_260px]">
+      <div className="mx-auto grid w-full max-w-6xl flex-1 content-start gap-5 px-4 py-5 lg:grid-cols-[1fr_268px]">
         <main className="min-w-0">
           {p.lockdown && !lockdown.supported && <Alert tone="info" className="mb-4">{d.lockdown.fullscreenUnsupported}</Alert>}
           {submitError && <Alert tone="danger" className="mb-4">{submitError}</Alert>}
           {current && (
-            <article className="rounded-lg border border-border bg-surface p-5 shadow-card sm:p-7" aria-labelledby="q-heading">
-              {current.sectionTitle && <p className="mb-1 text-xs font-medium uppercase tracking-wide text-primary">{current.sectionTitle}</p>}
+            <article className="glass-card rounded-2xl p-5 sm:p-7" aria-labelledby="q-heading">
+              {current.sectionTitle && <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-primary">{current.sectionTitle}</p>}
               <div className="mb-4 flex items-center justify-between gap-3">
                 <h2 id="q-heading" className="text-sm font-semibold text-muted-foreground">
                   {fmt(d.attempt.questionOf, { n: index + 1, total: p.questions.length })} · {formatPoints(current.points)} {d.common.pointsShort}
@@ -262,9 +262,9 @@ export function AttemptRunner(p: Props) {
           </div>
         </main>
         <aside className="order-first lg:order-none">
-          <nav className="rounded-lg border border-border bg-surface p-4 shadow-card lg:sticky lg:top-20" aria-label={d.common.questions}>
-            <p className="mb-3 text-xs font-medium text-muted-foreground">{d.common.questions}</p>
-            <div className="grid grid-cols-8 gap-1.5 lg:grid-cols-5">
+          <nav className="glass-card rounded-2xl p-3.5 lg:sticky lg:top-20 lg:p-4" aria-label={d.common.questions}>
+            <p className="mb-2.5 hidden text-xs font-semibold text-muted-foreground lg:block">{d.common.questions}</p>
+            <div className="flex gap-1.5 overflow-x-auto pb-1 lg:grid lg:grid-cols-5 lg:overflow-visible lg:pb-0">
               {p.questions.map((q, i) => {
                 const done = isAnswered(q);
                 return (
@@ -276,18 +276,18 @@ export function AttemptRunner(p: Props) {
                     aria-current={i === index ? "step" : undefined}
                     aria-label={`${i + 1}${done ? " ✓" : ""}${flags[q.id] ? " ⚑" : ""}`}
                     className={cn(
-                      "relative flex h-9 items-center justify-center rounded-md border text-sm font-medium tabular-nums transition-colors disabled:cursor-not-allowed",
-                      i === index ? "border-primary ring-2 ring-primary/30" : "border-border",
-                      done ? "bg-primary text-primary-foreground" : "bg-surface hover:bg-muted",
+                      "relative flex h-9 min-w-9 shrink-0 items-center justify-center rounded-xl border text-sm font-semibold tabular-nums transition-all disabled:cursor-not-allowed",
+                      i === index ? "border-primary ring-2 ring-primary/30" : "border-border/80",
+                      done ? "bg-primary text-primary-foreground" : "bg-surface/70 hover:bg-muted",
                     )}
                   >
                     {i + 1}
-                    {flags[q.id] && <span className="absolute -right-1 -top-1 size-2.5 rounded-full bg-warning" />}
+                    {flags[q.id] && <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full bg-warning" />}
                   </button>
                 );
               })}
             </div>
-            <div className="mt-4 space-y-1 text-xs text-muted-foreground">
+            <div className="mt-4 hidden space-y-1.5 text-xs text-muted-foreground lg:block">
               <p className="flex items-center gap-2"><span className="size-3 rounded bg-primary" /> {fmt(d.attempt.answered, { n: answered, total: p.questions.length })}</p>
               <p className="flex items-center gap-2"><span className="size-2.5 rounded-full bg-warning" /> {d.attempt.flagged}</p>
             </div>

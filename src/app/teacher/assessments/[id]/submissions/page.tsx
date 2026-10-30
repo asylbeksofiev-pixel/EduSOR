@@ -1,17 +1,18 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Inbox } from "lucide-react";
+import { Inbox, Sparkles } from "lucide-react";
 import { requireRole } from "@/lib/auth/session";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateTime } from "@/lib/i18n/format";
-import { PageHeader, EmptyState } from "@/components/ui/misc";
+import { aiConfigured } from "@/lib/ai/client";
+import { PageHeader, EmptyState, Alert } from "@/components/ui/misc";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Table, THead, TBody, TR, TH, TD } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ActionButton } from "@/components/forms/action-button";
-import { approveAllAutoAction, releaseResultsAction } from "@/lib/actions/grading";
+import { approveAllAutoAction, gradeAllSubmissionsWithAiAction, releaseResultsAction } from "@/lib/actions/grading";
 import { markFromPercent } from "@/lib/assessment/grading";
 import { fmt, formatPoints } from "@/lib/utils";
 
@@ -30,7 +31,9 @@ export default async function Submissions({ params }: { params: Promise<{ id: st
   const gradeOf = new Map((grades ?? []).map((g) => [g.attempt_id, g]));
   const released = new Set((releases ?? []).map((r) => r.attempt_id));
   const pendingAuto = (attempts ?? []).filter((t) => t.grading_status === "pending").length;
+  const needsAiReview = (attempts ?? []).filter((t) => t.question_scores.some((q) => q.final_points === null)).length;
   const releasable = (grades ?? []).filter((g) => !released.has(g.attempt_id)).length;
+  const aiReady = aiConfigured();
 
   return (
     <>
@@ -39,11 +42,21 @@ export default async function Submissions({ params }: { params: Promise<{ id: st
         breadcrumb={<Link href={`/teacher/assessments/${id}`} className="hover:underline">{a.title}</Link>}
         actions={
           <>
+            {aiReady && needsAiReview > 0 && (
+              <ActionButton variant="soft" action={gradeAllSubmissionsWithAiAction.bind(null, id)}>
+                <Sparkles className="size-4" /> {d.grading.aiBatchCheck} ({needsAiReview})
+              </ActionButton>
+            )}
             <ActionButton action={approveAllAutoAction.bind(null, id)} disabled={!pendingAuto} confirm={{ title: d.grading.approveAllAuto, description: d.grading.approveAllConfirm }}>{d.grading.approveAllAuto} ({pendingAuto})</ActionButton>
             <ActionButton variant="primary" action={releaseResultsAction.bind(null, id, undefined)} disabled={!releasable} confirm={{ title: d.grading.releaseAll, description: d.grading.releaseConfirm }}>{d.grading.releaseAll} ({releasable})</ActionButton>
           </>
         }
       />
+      {!aiReady && needsAiReview > 0 && (
+        <div className="mb-4">
+          <Alert tone="info">{d.grading.aiKeyMissingHint}</Alert>
+        </div>
+      )}
       <Card>
         <CardHeader title={`${d.assessment.submissions} (${attempts?.length ?? 0})`} />
         <CardBody className="p-0">

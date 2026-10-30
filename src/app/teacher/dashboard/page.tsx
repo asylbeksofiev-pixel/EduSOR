@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GraduationCap, Users, ClipboardList, Inbox, FileSearch, Plus } from "lucide-react";
+import { GraduationCap, Users, ClipboardList, Inbox, FileSearch, Plus, Sparkles } from "lucide-react";
 import { requireRole } from "@/lib/auth/session";
 import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
@@ -32,7 +32,16 @@ export default async function TeacherDashboard() {
       <PageHeader
         title={fmt(d.teacher.welcome, { name: greetingName(ctx.profile.full_name) })}
         description={d.teacher.dashboardTitle}
-        actions={<Button asChild><Link href="/teacher/assessments/new"><Plus /> {d.assessment.new}</Link></Button>}
+        actions={
+          <>
+            <Button asChild variant="secondary">
+              <Link href="/teacher/ai-checker"><Sparkles /> {d.nav.aiChecker}</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/teacher/assessments/new"><Plus /> {d.assessment.new}</Link>
+            </Button>
+          </>
+        }
       />
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label={d.teacher.stats.classes} value={classes.length} icon={GraduationCap} />

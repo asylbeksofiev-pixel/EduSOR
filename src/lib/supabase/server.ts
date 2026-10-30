@@ -1,12 +1,27 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 import { publicEnv } from "@/lib/env";
+import { isSupabaseBackend } from "@/lib/env.server";
+import { createLocalServerClient } from "@/lib/db/local-engine";
 
-/** Supabase client acting as the signed-in user. All queries are subject to RLS. */
-export async function createClient() {
+/** Database client acting as the signed-in user (Local SQLite out-of-the-box or Supabase Cloud via .env). */
+export async function createClient(): Promise<SupabaseClient<Database>> {
   const cookieStore = await cookies();
+  if (!isSupabaseBackend()) {
+    const local = await createLocalServerClient({
+      getAll() {
+        return cookieStore.getAll();
+      },
+      set(name, value, options) {
+        cookieStore.set(name, value, options as never);
+      },
+    });
+    return local as unknown as SupabaseClient<Database>;
+  }
+
   return createServerClient<Database>(publicEnv.NEXT_PUBLIC_SUPABASE_URL, publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {

@@ -6,10 +6,13 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDateTime, formatDuration } from "@/lib/i18n/format";
 import { describeKey } from "@/lib/assessment/describe";
 import type { QuestionType, Rubric, SnapshotQuestion } from "@/lib/assessment/schema";
+import { Sparkles } from "lucide-react";
 import { aiConfigured } from "@/lib/ai/client";
-import { PageHeader } from "@/components/ui/misc";
+import { gradeAttemptWithAiAction } from "@/lib/actions/grading";
+import { PageHeader, Alert } from "@/components/ui/misc";
 import { Card, CardHeader, CardBody } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ActionButton } from "@/components/forms/action-button";
 import { QuestionReviewCard, type ReviewItem } from "@/components/grading/question-review-card";
 import { ApprovePanel } from "@/components/grading/approve-panel";
 import { AutoRefresh } from "@/components/documents/auto-refresh";
@@ -109,7 +112,19 @@ export default async function ReviewDesk({ params }: { params: Promise<{ id: str
             {t.attempt_no > 1 && <Badge>{fmt(d.grading.attempt, { n: t.attempt_no })}</Badge>}
           </span>
         }
+        actions={
+          aiConfigured() && openCount > 0 ? (
+            <ActionButton variant="soft" action={gradeAttemptWithAiAction.bind(null, id)}>
+              <Sparkles className="size-4" /> {d.grading.aiCheckAttempt}
+            </ActionButton>
+          ) : undefined
+        }
       />
+      {!aiConfigured() && openCount > 0 && (
+        <div className="mb-4">
+          <Alert tone="info">{d.grading.aiKeyMissingHint}</Alert>
+        </div>
+      )}
       <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
         <div className="flex min-w-0 flex-col gap-4">
           {items.map((item) => <QuestionReviewCard key={item.answerId} item={item} aiReady={aiConfigured()} />)}

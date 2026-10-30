@@ -43,6 +43,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"ai_exam_checks": {
+                  Row: {
+                    "assessment_id": string | null,"created_at": string,"feedback": string,"grade": number | null,"id": string,"kind": Database["public"]['Enums']["assessment_kind"],"mark": number,"max_score": number,"model": string | null,"percent": number,"rubric_text": string | null,"school_id": string,"source_text": string,"student_name": string | null,"subject": string | null,"summary": string,"tasks": NonNullable<Json>,"teacher_id": string,"title": string,"total_score": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "assessment_id"?: string | null,"created_at"?: string,"feedback": string,"grade"?: number | null,"id"?: string,"kind"?: Database["public"]['Enums']["assessment_kind"],"mark": number,"max_score": number,"model"?: string | null,"percent": number,"rubric_text"?: string | null,"school_id": string,"source_text": string,"student_name"?: string | null,"subject"?: string | null,"summary": string,"tasks"?: NonNullable<Json>,"teacher_id": string,"title": string,"total_score": number
+                  }
+                  Update: {
+                    "assessment_id"?: string | null,"created_at"?: string,"feedback"?: string,"grade"?: number | null,"id"?: string,"kind"?: Database["public"]['Enums']["assessment_kind"],"mark"?: number,"max_score"?: number,"model"?: string | null,"percent"?: number,"rubric_text"?: string | null,"school_id"?: string,"source_text"?: string,"student_name"?: string | null,"subject"?: string | null,"summary"?: string,"tasks"?: NonNullable<Json>,"teacher_id"?: string,"title"?: string,"total_score": number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "ai_exam_checks_school_id_fkey"
+      columns: ["school_id"]
+isOneToOne: false
+      referencedRelation: "schools"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_exam_checks_teacher_id_fkey"
+      columns: ["teacher_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "ai_exam_checks_assessment_id_fkey"
+      columns: ["assessment_id"]
+isOneToOne: false
+      referencedRelation: "assessments"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"ai_explanations": {
                   Row: {
                     "answer_id": string,"created_at": string,"id": string,"locale": Database["public"]['Enums']["app_locale"],"messages": NonNullable<Json>,"model": string | null,"student_id": string,"updated_at": string
@@ -407,14 +439,14 @@ isOneToOne: false
                   ]
                 },"classes": {
                   Row: {
-                    "academic_year_id": string | null,"created_at": string,"grade": number,"id": string,"name": string,"school_id": string
+                    "academic_year_id": string | null,"created_at": string,"grade": number,"id": string,"join_code": string,"name": string,"school_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "academic_year_id"?: string | null,"created_at"?: string,"grade": number,"id"?: string,"name": string,"school_id": string
+                    "academic_year_id"?: string | null,"created_at"?: string,"grade": number,"id"?: string,"join_code"?: string,"name": string,"school_id": string
                   }
                   Update: {
-                    "academic_year_id"?: string | null,"created_at"?: string,"grade"?: number,"id"?: string,"name"?: string,"school_id"?: string
+                    "academic_year_id"?: string | null,"created_at"?: string,"grade"?: number,"id"?: string,"join_code"?: string,"name"?: string,"school_id"?: string
                   }
                   Relationships: [
                     {
@@ -1216,6 +1248,12 @@ isOneToOne: false
                            },
 "teaches_class":
 { Args: { "p_class": string }; Returns: boolean
+                           },
+"create_school_with_admin":
+{ Args: { "p_name": string,"p_city"?: string | null,"p_region"?: string | null }; Returns: string
+                           },
+"join_class_by_code":
+{ Args: { "p_join_code": string }; Returns: string
                            }
           }
           Enums: {

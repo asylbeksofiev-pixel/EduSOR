@@ -17,7 +17,7 @@ export default async function AdminClassDetail({ params }: { params: Promise<{ i
   const schoolId = ctx.schoolId!;
   const { d, locale } = await getI18n();
   const supabase = await createClient();
-  const { data: cls } = await supabase.from("classes").select("id, name, grade").eq("id", id).eq("school_id", schoolId).maybeSingle();
+  const { data: cls } = await supabase.from("classes").select("id, name, grade, join_code").eq("id", id).eq("school_id", schoolId).maybeSingle();
   if (!cls) notFound();
 
   const [{ data: teachers }, { data: enrolled }, { data: schoolTeachers }, { data: schoolStudents }, { data: subjects }] = await Promise.all([
@@ -32,7 +32,11 @@ export default async function AdminClassDetail({ params }: { params: Promise<{ i
 
   return (
     <>
-      <PageHeader title={`${cls.name} · ${fmt(d.common.gradeN, { n: cls.grade })}`} breadcrumb={<Link href="/admin/classes" className="hover:underline">{d.admin.classes}</Link>} />
+      <PageHeader
+        title={`${cls.name} · ${fmt(d.common.gradeN, { n: cls.grade })}`}
+        description={`${d.common.classCode}: ${cls.join_code}`}
+        breadcrumb={<Link href="/admin/classes" className="hover:underline">{d.admin.classes}</Link>}
+      />
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader title={d.common.teachers} />

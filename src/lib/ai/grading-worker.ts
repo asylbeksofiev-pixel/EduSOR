@@ -140,3 +140,39 @@ export async function processGradingJobs(limit: number): Promise<number> {
   }
   return done;
 }
+
+const AI_CHECKABLE_TYPES: QuestionType[] = ["essay", "short_text", "file_upload", "image_answer"];
+
+/** Queues and synchronously runs Gemini AI grading for unapproved open/short answers in an attempt. */
+export async function gradeAttemptNowWithAi(attemptId: string, requestedBy: string): Promise<number> {
+  if (!aiConfigured()) return 0;
+  const admin = createAdminClient();
+  const { data: attempt } = await admin.from("attempts").select("id, snapshot_id, status").eq("id", attemptId).maybeSingle();
+  if (!attempt || attempt.status !== "submitted") return 0;
+
+  const [{ data: keys }, { data: answers }, { data: scores }] = await Promise.all([
+    admin.from("assessment_snapshot_keys").select("question_id, type").eq("snapshot_id", attempt.snapshot_id),
+    admin.from("answers").select("id, question_id").eq("attempt_id", attemptId),
+    admin.from("question_scores").select("answer_id, final_points").eq("attempt_id", attemptId),
+  ]);
+
+  const checkableQIds = new Set(
+    (keys ?? [])
+      .filter((k) => AI_CHECKABLE_TYPES.includes(k.type as QuestionType))
+      .map((k) => k.question_id),
+  );
+  const unapprovedIds = new Set((scores ?? []).filter((s) => s.final_points === null).map((s) => s.answer_id));
+  const targetAnswerIds = (answers ?? [])
+    .filter((a) => checkableQIds.has(a.question_id) || unapprovedIds.has(a.id))
+    .map((a) => a.id);
+
+  if (!targetAnswerIds.length) return 0;
+
+  const { data: open } = await admin.from("grading_jobs").select("answer_id").in("answer_id", targetAnswerIds).in("status", ["queued", "running"]);
+  const busy = new Set((open ?? []).map((j) => j.answer_id));
+  const toInsert = targetAnswerIds.filter((id) => !busy.has(id)).map((answer_id) => ({ attempt_id: attemptId, answer_id, requested_by: requestedBy }));
+  if (toInsert.length) {
+    await admin.from("grading_jobs").insert(toInsert);
+  }
+  return processGradingJobs(Math.max(targetAnswerIds.length, 4));
+}

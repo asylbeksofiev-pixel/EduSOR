@@ -92,8 +92,8 @@ export function QuestionReviewCard({ item, aiReady }: { item: ReviewItem; aiRead
   const shownResult = decided ? (item.finalPoints! >= item.maxPoints ? "correct" : item.finalPoints! <= 0 ? "incorrect" : "partial") : item.autoResult;
 
   return (
-    <article className={cn("rounded-lg border bg-surface shadow-card", decided ? "border-border" : "border-warning/50")}>
-      <header className="flex flex-wrap items-center gap-2 border-b border-border px-5 py-3">
+    <article className={cn("glass-card rounded-2xl", !decided && "border-warning/45")}>
+      <header className="flex flex-wrap items-center gap-2 border-b border-border/80 px-5 py-3.5">
         <span className="flex size-6 items-center justify-center rounded bg-muted text-xs font-semibold">{item.index}</span>
         <Badge tone="primary">{d.questions.types[item.type]}</Badge>
         <Badge tone={resultTone[shownResult as keyof typeof resultTone] ?? "neutral"}>{(d.grading.results as Record<string, string>)[shownResult]}</Badge>

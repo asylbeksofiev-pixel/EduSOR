@@ -1,6 +1,5 @@
 "use server";
 
-import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient, type ServerClient } from "@/lib/supabase/server";
@@ -9,7 +8,7 @@ import { requireRole } from "@/lib/auth/session";
 import { audit } from "@/lib/server/audit";
 import { notifyGraded, notifyReleased } from "@/lib/server/notify";
 import { enqueueGradingJobs } from "@/lib/server/grading-service";
-import { runBackgroundJobs } from "@/lib/server/jobs";
+import { processGradingJobs, gradeAttemptNowWithAi } from "@/lib/ai/grading-worker";
 import { resultFromPoints } from "@/lib/assessment/grading";
 import { aiConfigured } from "@/lib/ai/client";
 import { fail, type ActionResult } from "./result";
@@ -110,9 +109,41 @@ export async function requestAiSuggestionAction(answerId: string): Promise<Actio
   const row = await readableScore(supabase, answerId);
   if (!row) return fail("forbidden");
   await enqueueGradingJobs(row.attempt_id, [answerId], ctx.userId);
-  after(() => runBackgroundJobs({ grading: 3, ocr: 0 }));
+  await processGradingJobs(2);
   revalidatePath(`/teacher/submissions/${row.attempt_id}/review`);
   return { ok: true, data: undefined };
+}
+
+export async function gradeAttemptWithAiAction(attemptId: string): Promise<ActionResult<{ checked: number }>> {
+  if (!uuid.safeParse(attemptId).success) return fail("invalid");
+  const ctx = await requireRole("teacher");
+  if (!aiConfigured()) return fail("aiUnavailable");
+  const supabase = await createClient();
+  const { data: attempt } = await supabase.from("attempts").select("id, assessment_id").eq("id", attemptId).eq("status", "submitted").maybeSingle();
+  if (!attempt) return fail("forbidden");
+  const checked = await gradeAttemptNowWithAi(attemptId, ctx.userId);
+  revalidatePath(`/teacher/submissions/${attemptId}/review`);
+  revalidatePath(`/teacher/assessments/${attempt.assessment_id}/submissions`);
+  return { ok: true, data: { checked } };
+}
+
+export async function gradeAllSubmissionsWithAiAction(assessmentId: string): Promise<ActionResult<{ checked: number }>> {
+  if (!uuid.safeParse(assessmentId).success) return fail("invalid");
+  const ctx = await requireRole("teacher");
+  if (!aiConfigured()) return fail("aiUnavailable");
+  const supabase = await createClient();
+  const { data: attempts } = await supabase
+    .from("attempts")
+    .select("id")
+    .eq("assessment_id", assessmentId)
+    .eq("status", "submitted");
+  let checked = 0;
+  for (const t of attempts ?? []) {
+    checked += await gradeAttemptNowWithAi(t.id, ctx.userId);
+    revalidatePath(`/teacher/submissions/${t.id}/review`);
+  }
+  revalidatePath(`/teacher/assessments/${assessmentId}/submissions`);
+  return { ok: true, data: { checked } };
 }
 
 async function approveOne(supabase: ServerClient, attemptId: string, actorId: string, feedback: string | null): Promise<"ok" | "forbidden" | "incomplete"> {

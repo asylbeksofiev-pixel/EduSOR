@@ -1,24 +1,26 @@
 # AI configuration
 
-EduSOR talks to any **OpenAI-compatible Chat Completions API** (`POST {AI_API_BASE_URL}/chat/completions`)
-with JSON-mode responses. Change provider or model through environment variables only.
+EduSOR natively supports **Google Gemini REST API** (`generativelanguage.googleapis.com/v1beta/models/...:generateContent`) as the primary AI provider (`AI_PROVIDER=gemini`, configured via `GEMINI_API_KEY` in `.env`), as well as any **OpenAI-compatible Chat Completions API** (`AI_PROVIDER=openai`).
 
 | Variable | Example |
 |---|---|
-| `AI_API_BASE_URL` | `https://api.openai.com/v1`, an Azure/OpenRouter/self-hosted (vLLM, Ollama) compatible URL |
-| `AI_API_KEY` | provider key (server only) |
-| `AI_MODEL_TEXT` | model for structuring, grading, explanations (must support JSON mode) |
-| `AI_MODEL_VISION` | vision-capable model for OCR of scans and photos |
+| `AI_PROVIDER` | `gemini` (default) or `openai` |
+| `GEMINI_API_KEY` | Google AI Studio Gemini API key (server only — put in `.env`) |
+| `GEMINI_MODEL_TEXT` | `gemini-2.5-flash` (used for СОР/СОЧ grading, structuring, explanations) |
+| `GEMINI_MODEL_VISION` | `gemini-2.5-flash` (used for multimodal photo/scan СОР/СОЧ checking & OCR) |
+| `AI_API_BASE_URL` | `https://api.openai.com/v1` (fallback when `AI_PROVIDER=openai`) |
+| `AI_API_KEY` | OpenAI-compatible provider key (server only) |
+| `AI_MODEL_TEXT` / `AI_MODEL_VISION` | OpenAI-compatible model names |
 | `AI_TIMEOUT_MS` | default 60000 |
 | `AI_MAX_RETRIES` | default 2 (429/5xx/timeouts, exponential backoff) |
 
-Leave `AI_API_KEY` empty to disable AI. The UI then states that AI is unavailable; nothing pretends
-to have been generated.
+Leave `GEMINI_API_KEY` (and `AI_API_KEY`) empty to disable AI. The UI then clearly prompts to add `GEMINI_API_KEY` in `.env`.
 
 ## Where AI is used
 
 | Feature | Code | Output validation |
 |---|---|---|
+| Full СОР/СОЧ paper checking | `ai/tasks.ts › checkExamPaperWithGemini` + `POST /api/ai/check-exam` | task & descriptor scores clamped server-side; persisted in `ai_exam_checks` |
 | OCR of scanned pages/photos | `ai/tasks.ts › ocrImage` | `{text, uncertain, notes}`; unclear fragments are marked `⟦?…?⟧` |
 | Document → questions | `structureDocument` → `toEditableQuestion` | strict conversion; missing keys stay empty and block publishing |
 | Grading suggestion | `suggestGrade` (grading worker) | criterion scores clamped to rubric maxima server-side; confidence < 0.7 → manual review |

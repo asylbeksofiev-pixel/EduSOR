@@ -16,7 +16,7 @@ export default async function AdminClasses() {
   const { d, locale } = await getI18n();
   const supabase = await createClient();
   const [{ data: classes }, { data: years }, { data: subjects }] = await Promise.all([
-    supabase.from("classes").select("id, name, grade, year:academic_years(name), class_enrollments(count), class_teachers(count)").eq("school_id", schoolId).order("grade").order("name"),
+    supabase.from("classes").select("id, name, grade, join_code, year:academic_years(name), class_enrollments(count), class_teachers(count)").eq("school_id", schoolId).order("grade").order("name"),
     supabase.from("academic_years").select("id, name, is_current").eq("school_id", schoolId).order("starts_on", { ascending: false }),
     supabase.from("subjects").select("id, name_ru, name_kk, code").eq("school_id", schoolId).order("name_ru"),
   ]);
@@ -30,11 +30,12 @@ export default async function AdminClasses() {
           <CardBody className="p-0">
             {!classes?.length ? <EmptyState title={d.admin.noClasses} /> : (
               <Table>
-                <THead><TR><TH>{d.common.class}</TH><TH>{d.common.grade}</TH><TH>{d.admin.academicYear}</TH><TH>{d.common.students}</TH><TH>{d.common.teachers}</TH><TH /></TR></THead>
+                <THead><TR><TH>{d.common.class}</TH><TH>{d.common.classCode}</TH><TH>{d.common.grade}</TH><TH>{d.admin.academicYear}</TH><TH>{d.common.students}</TH><TH>{d.common.teachers}</TH><TH /></TR></THead>
                 <TBody>
                   {classes.map((c) => (
                     <TR key={c.id}>
                       <TD className="font-medium"><Link className="text-primary hover:underline" href={`/admin/classes/${c.id}`}>{c.name}</Link></TD>
+                      <TD><code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-semibold">{c.join_code}</code></TD>
                       <TD>{fmt(d.common.gradeN, { n: c.grade })}</TD>
                       <TD className="text-muted-foreground">{c.year?.name ?? "—"}</TD>
                       <TD>{c.class_enrollments[0]?.count ?? 0}</TD>

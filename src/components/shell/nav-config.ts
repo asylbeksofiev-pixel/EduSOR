@@ -1,7 +1,7 @@
 import type { AppRole } from "@/lib/auth/session";
 
 export type NavIcon =
-  | "home" | "classes" | "students" | "subjects" | "bank" | "assessments" | "documents" | "live" | "analytics"
+  | "home" | "classes" | "students" | "subjects" | "bank" | "assessments" | "ai" | "documents" | "live" | "analytics"
   | "settings" | "results" | "progress" | "profile" | "teachers" | "reports" | "schools" | "users" | "audit" | "review";
 
 export type NavItem = { href: string; labelKey: string; icon: NavIcon };
@@ -9,11 +9,12 @@ export type NavItem = { href: string; labelKey: string; icon: NavIcon };
 export const NAV: Record<AppRole, NavItem[]> = {
   teacher: [
     { href: "/teacher/dashboard", labelKey: "dashboard", icon: "home" },
+    { href: "/teacher/assessments", labelKey: "assessments", icon: "assessments" },
+    { href: "/teacher/ai-checker", labelKey: "aiChecker", icon: "ai" },
     { href: "/teacher/classes", labelKey: "myClasses", icon: "classes" },
     { href: "/teacher/students", labelKey: "students", icon: "students" },
     { href: "/teacher/subjects", labelKey: "subjects", icon: "subjects" },
     { href: "/teacher/question-bank", labelKey: "questionBank", icon: "bank" },
-    { href: "/teacher/assessments", labelKey: "assessments", icon: "assessments" },
     { href: "/teacher/documents", labelKey: "documents", icon: "documents" },
     { href: "/teacher/live", labelKey: "liveMonitoring", icon: "live" },
     { href: "/teacher/analytics", labelKey: "analytics", icon: "analytics" },

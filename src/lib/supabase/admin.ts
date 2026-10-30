@@ -1,15 +1,18 @@
 import "server-only";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./database.types";
 import { publicEnv } from "@/lib/env";
-import { serverEnv } from "@/lib/env.server";
+import { serverEnv, isSupabaseBackend } from "@/lib/env.server";
+import { createLocalAdminClient } from "@/lib/db/local-engine";
 
 /**
- * Service-role client. Bypasses RLS, so it may only be used by server code that has
- * ALREADY verified the caller's identity and permissions (grading, background jobs,
- * notifications, admin-created accounts). Never import this from client components.
+ * Service-role client. Bypasses RLS, used only by verified server code
+ * (grading, background jobs, notifications, admin-created accounts).
  */
-export function createAdminClient() {
+export function createAdminClient(): SupabaseClient<Database> {
+  if (!isSupabaseBackend()) {
+    return createLocalAdminClient() as unknown as SupabaseClient<Database>;
+  }
   return createClient<Database>(publicEnv.NEXT_PUBLIC_SUPABASE_URL, serverEnv().SUPABASE_SERVICE_ROLE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

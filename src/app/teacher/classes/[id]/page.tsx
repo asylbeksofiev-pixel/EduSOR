@@ -17,7 +17,7 @@ export default async function TeacherClassDetail({ params }: { params: Promise<{
   await requireRole("teacher");
   const { d, locale } = await getI18n();
   const supabase = await createClient();
-  const { data: cls } = await supabase.from("classes").select("id, name, grade, class_teachers(subject:subjects(id, name_ru, name_kk), teacher:profiles(full_name))").eq("id", id).maybeSingle();
+  const { data: cls } = await supabase.from("classes").select("id, name, grade, join_code, class_teachers(subject:subjects(id, name_ru, name_kk), teacher:profiles(full_name))").eq("id", id).maybeSingle();
   if (!cls) notFound();
 
   const [{ data: students }, { data: assessments }, { data: grades }] = await Promise.all([
@@ -40,7 +40,10 @@ export default async function TeacherClassDetail({ params }: { params: Promise<{
       <PageHeader
         title={`${cls.name} · ${fmt(d.common.gradeN, { n: cls.grade })}`}
         breadcrumb={<Link href="/teacher/classes" className="hover:underline">{d.teacher.classesTitle}</Link>}
-        description={cls.class_teachers.map((ct) => subjectName(ct.subject, locale)).filter((s) => s !== "—").join(", ")}
+        description={[
+          `${d.common.classCode}: ${cls.join_code}`,
+          cls.class_teachers.map((ct) => subjectName(ct.subject, locale)).filter((s) => s !== "—").join(", "),
+        ].filter(Boolean).join(" · ")}
         actions={
           <>
             <Button asChild variant="secondary"><Link href={`/teacher/classes/${id}/progress`}><LineChart /> {d.teacher.classProgress}</Link></Button>
